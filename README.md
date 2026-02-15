@@ -231,9 +231,16 @@ picoclaw onboard
 
 ```bash
 picoclaw agent -m "What is 2+2?"
+picoclaw agent -m "what is 3+3"
 ```
 
 That's it! You have a working AI assistant in 2 minutes.
+
+### 📖 Documentation
+
+- **[Quick Start Guide](QUICK_START.md)** - Get up and running in 30 seconds
+- **[Command Line Guide](COMMAND_LINE_GUIDE.md)** - Complete CLI reference and examples
+- **[Provider Updates](pkg/providers/README_UPDATES.md)** - Enhanced provider features and Azure support
 
 ---
 

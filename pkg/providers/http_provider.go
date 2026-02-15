@@ -198,14 +198,21 @@ func (p *HTTPProvider) GetDefaultModel() string {
 }
 
 func createClaudeAuthProvider() (LLMProvider, error) {
-	cred, err := auth.GetCredential("anthropic")
+	// Use the new auto provider with dynamic token management
+	// This automatically checks: environment → keychain → auth package
+	provider, err := NewClaudeProviderAuto()
 	if err != nil {
-		return nil, fmt.Errorf("loading auth credentials: %w", err)
+		// Fallback to traditional method if auto fails
+		cred, err := auth.GetCredential("anthropic")
+		if err != nil {
+			return nil, fmt.Errorf("loading auth credentials: %w", err)
+		}
+		if cred == nil {
+			return nil, fmt.Errorf("no credentials for anthropic. Run: picoclaw auth login --provider anthropic")
+		}
+		return NewClaudeProviderWithTokenSource(cred.AccessToken, createClaudeTokenSource()), nil
 	}
-	if cred == nil {
-		return nil, fmt.Errorf("no credentials for anthropic. Run: picoclaw auth login --provider anthropic")
-	}
-	return NewClaudeProviderWithTokenSource(cred.AccessToken, createClaudeTokenSource()), nil
+	return provider, nil
 }
 
 func createCodexAuthProvider() (LLMProvider, error) {
@@ -298,6 +305,9 @@ func CreateProvider(cfg *config.Config) (LLMProvider, error) {
 					apiBase = "https://router.shengsuanyun.com/api/v1"
 				}
 			}
+		case "azure", "azure-openai", "azureopenai", "codex":
+			// Use NewCodexProviderAuto which auto-detects Azure or OpenAI config
+			return NewCodexProviderAuto()
 		case "claude-cli", "claudecode", "claude-code":
 			workspace := cfg.Agents.Defaults.Workspace
 			if workspace == "" {
