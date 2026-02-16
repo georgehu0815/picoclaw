@@ -432,7 +432,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 				"model":             al.model,
 				"messages_count":    len(messages),
 				"tools_count":       len(providerToolDefs),
-				"max_tokens":        8192,
+				"max_tokens":        al.contextWindow,
 				"temperature":       0.7,
 				"system_prompt_len": len(messages[0].Content),
 			})
@@ -447,7 +447,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 
 		// Call LLM
 		response, err := al.provider.Chat(ctx, messages, providerToolDefs, al.model, map[string]interface{}{
-			"max_tokens":  8192,
+			"max_tokens":  al.contextWindow,
 			"temperature": 0.7,
 		})
 
@@ -491,8 +491,10 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 		for _, tc := range response.ToolCalls {
 			argumentsJSON, _ := json.Marshal(tc.Arguments)
 			assistantMsg.ToolCalls = append(assistantMsg.ToolCalls, providers.ToolCall{
-				ID:   tc.ID,
-				Type: "function",
+				ID:        tc.ID,
+				Name:      tc.Name, // Set top-level Name for Claude provider
+				Type:      "function",
+				Arguments: tc.Arguments, // Keep raw arguments for Claude
 				Function: &providers.FunctionCall{
 					Name:      tc.Name,
 					Arguments: string(argumentsJSON),

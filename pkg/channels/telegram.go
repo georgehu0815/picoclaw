@@ -139,18 +139,46 @@ func (c *TelegramChannel) Send(ctx context.Context, msg bus.OutboundMessage) err
 
 	htmlContent := markdownToTelegramHTML(msg.Content)
 
-	// Try to edit placeholder
+	// Telegram message length limit is 4096 characters
+	const maxLength = 4000 // Leave some margin for HTML tags
+
+	// Try to edit placeholder first (only for short messages)
 	if pID, ok := c.placeholders.Load(msg.ChatID); ok {
 		c.placeholders.Delete(msg.ChatID)
-		editMsg := tu.EditMessageText(tu.ID(chatID), pID.(int), htmlContent)
-		editMsg.ParseMode = telego.ModeHTML
+		if len(htmlContent) <= maxLength {
+			editMsg := tu.EditMessageText(tu.ID(chatID), pID.(int), htmlContent)
+			editMsg.ParseMode = telego.ModeHTML
 
-		if _, err = c.bot.EditMessageText(ctx, editMsg); err == nil {
-			return nil
+			if _, err = c.bot.EditMessageText(ctx, editMsg); err == nil {
+				return nil
+			}
 		}
-		// Fallback to new message if edit fails
+		// Fallback to new message if edit fails or message is too long
 	}
 
+	// Split long messages into chunks
+	if len(htmlContent) > maxLength {
+		chunks := splitMessage(htmlContent, maxLength)
+		for i, chunk := range chunks {
+			tgMsg := tu.Message(tu.ID(chatID), chunk)
+			tgMsg.ParseMode = telego.ModeHTML
+
+			if _, err = c.bot.SendMessage(ctx, tgMsg); err != nil {
+				// Try plain text if HTML fails
+				logger.DebugCF("telegram", "HTML parse failed for chunk, trying plain text", map[string]interface{}{
+					"chunk": i + 1,
+					"error": err.Error(),
+				})
+				tgMsg.ParseMode = ""
+				if _, err = c.bot.SendMessage(ctx, tgMsg); err != nil {
+					return fmt.Errorf("failed to send chunk %d: %w", i+1, err)
+				}
+			}
+		}
+		return nil
+	}
+
+	// Send single message for short content
 	tgMsg := tu.Message(tu.ID(chatID), htmlContent)
 	tgMsg.ParseMode = telego.ModeHTML
 
@@ -488,4 +516,64 @@ func escapeHTML(text string) string {
 	text = strings.ReplaceAll(text, "<", "&lt;")
 	text = strings.ReplaceAll(text, ">", "&gt;")
 	return text
+}
+
+// splitMessage splits a long message into chunks that fit within Telegram's limits
+func splitMessage(text string, maxLength int) []string {
+	if len(text) <= maxLength {
+		return []string{text}
+	}
+
+	var chunks []string
+	lines := strings.Split(text, "\n")
+	currentChunk := ""
+
+	for _, line := range lines {
+		// If adding this line would exceed the limit
+		if len(currentChunk)+len(line)+1 > maxLength {
+			// If current chunk is not empty, save it
+			if currentChunk != "" {
+				chunks = append(chunks, strings.TrimSpace(currentChunk))
+				currentChunk = ""
+			}
+
+			// If a single line is too long, split it by sentences
+			if len(line) > maxLength {
+				sentences := strings.Split(line, ". ")
+				for _, sentence := range sentences {
+					if len(currentChunk)+len(sentence)+2 > maxLength {
+						if currentChunk != "" {
+							chunks = append(chunks, strings.TrimSpace(currentChunk))
+							currentChunk = ""
+						}
+						// If even a single sentence is too long, force split
+						if len(sentence) > maxLength {
+							for i := 0; i < len(sentence); i += maxLength {
+								end := i + maxLength
+								if end > len(sentence) {
+									end = len(sentence)
+								}
+								chunks = append(chunks, sentence[i:end])
+							}
+						} else {
+							currentChunk = sentence + ". "
+						}
+					} else {
+						currentChunk += sentence + ". "
+					}
+				}
+			} else {
+				currentChunk = line + "\n"
+			}
+		} else {
+			currentChunk += line + "\n"
+		}
+	}
+
+	// Add remaining chunk
+	if currentChunk != "" {
+		chunks = append(chunks, strings.TrimSpace(currentChunk))
+	}
+
+	return chunks
 }

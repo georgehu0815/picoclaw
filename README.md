@@ -242,6 +242,15 @@ That's it! You have a working AI assistant in 2 minutes.
 - **[Command Line Guide](COMMAND_LINE_GUIDE.md)** - Complete CLI reference and examples
 - **[Provider Updates](pkg/providers/README_UPDATES.md)** - Enhanced provider features and Azure support
 
+**System Architecture**:
+- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Complete system design and component documentation
+- **[Architecture Diagrams](docs/ARCHITECTURE_DIAGRAMS.md)** - High-resolution PNG architecture diagrams
+- **[Azure End-to-End Success](AZURE_END_TO_END_SUCCESS.md)** - Azure OpenAI with Managed Identity
+
+**Channel Integration**:
+- **[Telegram Setup Guide](docs/TELEGRAM_SETUP_GUIDE.md)** - Complete Telegram bot integration guide
+- **[Telegram Quick Reference](docs/TELEGRAM_QUICK_REFERENCE.md)** - One-page cheat sheet for Telegram
+
 ---
 
 ## 💬 Chat Apps
@@ -258,6 +267,8 @@ Talk to your picoclaw through Telegram, Discord, DingTalk, or LINE
 
 <details>
 <summary><b>Telegram</b> (Recommended)</summary>
+
+> 📚 **For comprehensive setup**: See [Telegram Setup Guide](docs/TELEGRAM_SETUP_GUIDE.md) | [Quick Reference](docs/TELEGRAM_QUICK_REFERENCE.md)
 
 **1. Create a bot**
 
