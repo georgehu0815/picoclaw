@@ -46,6 +46,12 @@
       "client_secret": "YOUR_CLIENT_SECRET",
       "allow_from": []
     },
+    "qq": {
+      "enabled": false,
+      "app_id": "YOUR_QQ_APP_ID",
+      "app_secret": "YOUR_QQ_APP_SECRET",
+      "allow_from": []
+    },
     "slack": {
       "enabled": false,
       "bot_token": "xoxb-YOUR-BOT-TOKEN",

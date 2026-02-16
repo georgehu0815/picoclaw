@@ -250,6 +250,8 @@ That's it! You have a working AI assistant in 2 minutes.
 **Channel Integration**:
 - **[Telegram Setup Guide](docs/TELEGRAM_SETUP_GUIDE.md)** - Complete Telegram bot integration guide
 - **[Telegram Quick Reference](docs/TELEGRAM_QUICK_REFERENCE.md)** - One-page cheat sheet for Telegram
+- **[QQ Setup Guide](docs/QQ_SETUP_GUIDE.md)** - Complete QQ bot integration guide
+- **[QQ Quick Reference](docs/QQ_QUICK_REFERENCE.md)** - One-page cheat sheet for QQ
 
 ---
 
@@ -350,6 +352,8 @@ picoclaw gateway
 
 <details>
 <summary><b>QQ</b></summary>
+
+> 📚 **For comprehensive setup**: See [QQ Setup Guide](docs/QQ_SETUP_GUIDE.md) | [Quick Reference](docs/QQ_QUICK_REFERENCE.md)
 
 **1. Create a bot**
 
